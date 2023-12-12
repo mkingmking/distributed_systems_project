@@ -14,7 +14,9 @@ KAFKA_BROKER = 'kafka:9092'  # Assuming Kafka service is named 'kafka' in docker
 KAFKA_TOPIC = 'chat_messages'
 
 # Initialize Kafka Producer and Consumer
-producer = KafkaProducer(bootstrap_servers=[KAFKA_BROKER])
+producer = KafkaProducer(bootstrap_servers=[KAFKA_BROKER],
+              api_version=(0,11,5),
+              value_serializer=lambda x: dumps(x).encode('utf-8'))
 consumer = KafkaConsumer(KAFKA_TOPIC, bootstrap_servers=[KAFKA_BROKER])
 consumer.subscribe([KAFKA_TOPIC])
 
