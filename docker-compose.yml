@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  chatserver:
+    build: .
+    ports:
+      - "90:90"
+    volumes:
+      - .:/app
+    restart: always
