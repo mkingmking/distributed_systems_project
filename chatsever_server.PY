@@ -3,12 +3,26 @@ import threading
 import os as os
 import sqlite3
 from datetime import datetime
-
+from kafka import KafkaProducer, KafkaConsumer
 
 HOST_IP = socket.gethostbyname(socket.gethostname())  
 HOST_PORT = 90
 ENCODER = "utf-8"
 BYTESIZE = 1024
+# Kafka configuration
+KAFKA_BROKER = 'kafka:9092'  # Assuming Kafka service is named 'kafka' in docker-compose
+KAFKA_TOPIC = 'chat_messages'
+
+# Initialize Kafka Producer and Consumer
+producer = KafkaProducer(bootstrap_servers=[KAFKA_BROKER])
+consumer = KafkaConsumer(KAFKA_TOPIC, bootstrap_servers=[KAFKA_BROKER])
+
+
+
+
+
+
+
 
 
 # Dictionary 
@@ -36,8 +50,17 @@ def save_message(nickname, message):
 
 def broadcast(message, sender="Server"):
     full_message = f"{sender}: {message}".encode(ENCODER)
+    send_message_to_kafka(full_message)
     for client_socket in clients.values():
         client_socket.send(full_message)
+
+
+def consume_and_broadcast_messages():
+    for message in consumer:
+        full_message = message.value.decode()
+        for client_socket in clients.values():
+            client_socket.send(full_message.encode(ENCODER))
+
 
 
 def handle_client(client_socket):
@@ -98,7 +121,13 @@ print("Server is running and listening for connections...\n")
 
 initialize_database()
 
-print("basarili")
+
+# In your server's main loop, after initializing the database
+kafka_consumer_thread = threading.Thread(target=consume_and_broadcast_messages)
+kafka_consumer_thread.start()
+
+
+
 try:
     while True:
         def send_server_message():
