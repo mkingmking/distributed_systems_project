@@ -1,1 +1,1 @@
-# distibuted_systems_project
+# distributed_systems_project
